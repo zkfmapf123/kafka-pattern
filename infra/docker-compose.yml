@@ -1,0 +1,26 @@
+version: "3"
+services:
+  service-discovery:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181      # Zookeeper client port 설정
+      ZOOKEEPER_TICK_TIME: 2000        # Zookeeper tick 시간 설정
+
+  broker:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: broker
+    ports:
+      - "9092:9092"                   # 호스트와 컨테이너 간의 포트 매핑
+    depends_on:
+      - service-discovery             # Zookeeper 서비스가 먼저 시작되도록 설정
+    environment:
+      KAFKA_BROKER_ID: 1              # Kafka broker ID 설정
+      KFAKA_ZOOKEEPER_CONNECT: service-discovery:2181   # Zookeeper 연결 설정
+      KAFKA_LISTENER_SECURITY_PROTICOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT   # Kafka 리스너 보안 프로토콜 설정
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092   # Kafka 광고 리스너 설정
+      KAFKA_OFFSETS_TOPIC_REPLCATION_FACTOR: 1    # 오프셋 토픽 복제 계수 설정
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1      # 트랜잭션 상태 로그 최소 ISR 설정
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1   # 트랜잭션 상태 로그 복제 계수 설정
+
+  
