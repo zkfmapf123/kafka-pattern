@@ -1,0 +1,16 @@
+clusters:
+  - name: "devstg-msk" 
+    bootstrapServers: 
+      - "bootstraps:9092"
+	    - "bootstraps:9092"
+	    - "bootstraps:9092"
+    schemaRegistry: "" # 스키마 레지스트리를 사용하지 않을 경우 빈 값
+    # kafkaConnect:      # Kafka Connect 관련 설정
+    #   - name: "Connect-1"
+    #     address: "http://<kafka-connect-endpoint>:8083" # Kafka Connect API 엔드포인트
+    # properties:        # 사용자 정의 Kafka 프로퍼티
+    #   security.protocol: "SASL_SSL"
+    #   sasl.mechanism: "AWS_MSK_IAM" # MSK IAM 인증 메커니즘
+    metrics:           # (선택) 메트릭 서버 설정
+      topicLag: true
+      partitionLag: true
