@@ -1,11 +1,19 @@
-# Kafka-in-go 
+# Kafka-in-go
+
+## Consumer
+
+![simple consumer](./public/consumer.drawio.png)
+
+## Consumer (Batch Listener)
+
+![batch listener](./public/batch-consumer.drawio.png)
+
+## Pub / Sub Application
+
+![app](./public/app.drawio.png)
 
 ## Producer use lambda
 
 ![1](./public/1.png)
 
-## Outbox pattern (todo...)
-
-## Efficient Outbox Pattern (todo...)
-
-## Issue
+[Lambda Code](./producer-lambda/main.go)
