@@ -2,7 +2,7 @@
 
 ## Infra (추후 MSK / Terraform)
 
-![infra](./infra/docker-compose.yml)
+[infra](./infra/docker-compose.yml)
 
 ## Producer Code (nodejs)
 
