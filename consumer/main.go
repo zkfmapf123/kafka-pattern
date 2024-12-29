@@ -74,7 +74,7 @@ func (k kafkaConn) Consume(topic string)  {
 
 		go func(pc sarama.PartitionConsumer) {
 			for msg := range pc.Messages() {
-				fmt.Println("[consume] topic : ",topic, msg)
+				fmt.Println("[consume] topic : ",topic, string(msg.Value))
 			}
 		}(pConsumer)
 	}

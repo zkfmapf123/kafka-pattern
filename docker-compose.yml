@@ -13,6 +13,7 @@ services:
       - KAFKA_CLUSTER_NAME=local
       - KAFKA_TOPIC=user
       - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+
   family-api:
     build:
       context: ./producer
@@ -26,6 +27,7 @@ services:
       - KAFKA_CLUSTER_NAME=local
       - KAFKA_TOPIC=family
       - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+
   coworker-api:
     build:
       context: ./producer
@@ -39,6 +41,7 @@ services:
       - KAFKA_CLUSTER_NAME=local
       - KAFKA_TOPIC=coworker
       - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+
   consumer:
     build:
       context: ./consumer
@@ -49,5 +52,5 @@ services:
     environment:
       - PORT=8080
       - KAFKA_TOPICS=user,family,coworker
-	    - KAFKA_CONSUMER_GROUP=consumer-group
-	    - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+      - KAFKA_CONSUMER_GROUP=consumer-group
+      - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
