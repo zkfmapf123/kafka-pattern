@@ -1,5 +1,30 @@
 # Kafak Essential
 
+## Folder Architecture
+
+```sh
+## simple
+|- producer 				## producer 코드 (nodejs)
+|- consumer					## consumer 코드 (golang)
+
+## advacned
+|- producer-lambda			## producer 코드 람다 코드 (javascript)
+|- consumer-batch-listener	## consumer Batch 코드 (golang)
+
+## cdc / outbox pattern
+|- producer-cdc				## producer cdc 코드 (javascript + mysql)
+|- producer-outbox			## producer outbox 코드 (javascript + mysql)
+|- consumer-mysql			## consumer mysql 코드 (golang + mysql)
+```
+
+## Exec
+
+```sh
+	make up
+	make cdc-up
+	make outbox-up
+```
+
 ## Infra / Container
 
 - [kafka docker-compose.yml 코드](./infra/docker-compose.yml)
@@ -254,7 +279,7 @@ func (k kafkaConn) Close() error {
 - 특징
   - outbox라는 별도의 테이블을 활용 (별도의 Queue로 대체)
   - DB에 테이블 CRUD 후, outbox라는 테이블에 구성
-  - 두개의 테이블 CRUD 후 transaction...
+  - 두개의 테이블 CRUD 후 transaction... (별도의 모듈이 필요할듯함)
 - 장점
   - 데이터를 outbox라는 테이블에 immutable하게 사용함 -> 매번의 변경사항을 확인할 수 있음
   - 나름 이상적인 패턴임...
