@@ -240,6 +240,27 @@ func (k kafkaConn) Close() error {
 
 [Lambda Code](./producer-lambda/main.go)
 
+## CDC Pattern (\*\*)
+
+- 단점
+  - 주기적으로 DB에서 값을 읽어오기때문에 -> 변경사항이 잦다면 -> 인지하기 어려움 (이슈 발생 여지 존재)
+
+![cdc](./public/cdc.drawio.png)
+
+## Outbox Pattern (\*\*)
+
+![outbox](./public/outbox.drawio.png)
+
+- 특징
+  - outbox라는 별도의 테이블을 활용 (별도의 Queue로 대체)
+  - DB에 테이블 CRUD 후, outbox라는 테이블에 구성
+  - 두개의 테이블 CRUD 후 transaction...
+- 장점
+  - 데이터를 outbox라는 테이블에 immutable하게 사용함 -> 매번의 변경사항을 확인할 수 있음
+  - 나름 이상적인 패턴임...
+- 단점
+  - 좀더 구현하기가 복잡할 수 있음 (별도의 테이블을 구성..., immutable 하게 구성해야 함) -> 주기적으로 데이터를 지워줘야 함 (스토리지)
+
 ## Issue
 
 - EC2에 구성된 카프카 local에서 접근 시, Connection Error
