@@ -1,8 +1,9 @@
-# Kafka-in-go
+# Kafak Essential
 
-## Infra (추후 MSK / Terraform)
+## Infra / Container
 
-[infra](./infra/docker-compose.yml)
+[kafka docker-compose.yml 코드](./infra/docker-compose.yml)
+[api docker-compose.yml 코드](./docker-compose.yml)
 
 ## Producer Code (nodejs)
 
@@ -73,7 +74,59 @@ export const kafkaConn = new KafkaConfig(
 );
 ```
 
-## Producer 성능개선
+## Consumer Code (Golang)
+
+```golang
+func NewKafka() kafkaConn {
+
+	kafkaBrokers := strings.Split(KAFKA_BROKERS, ",")
+
+	config := sarama.NewConfig()
+	config.Consumer.Return.Errors = true
+	config.Version = sarama.V3_6_0_0
+
+	consumer,err := sarama.NewConsumer(kafkaBrokers, config)
+	if err != nil {
+		panic(err)
+	}
+
+	return kafkaConn{
+		consumer : consumer,
+	}
+}
+
+func (k kafkaConn) Consume(topic string)  {
+
+	partitionList, err := k.consumer.Partitions(topic)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, partition := range partitionList {
+		pConsumer, err := k.consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
+		if err != nil {
+			panic(err)
+		}
+
+		go func(pc sarama.PartitionConsumer) {
+			for msg := range pc.Messages() {
+				fmt.Println("[consume] topic : ",topic, string(msg.Value))
+			}
+		}(pConsumer)
+	}
+}
+
+func (k kafkaConn) Close() error {
+	log.Panicln("Closing kafka consumer...")
+	return k.consumer.Close()
+}
+```
+
+## Consumer 성능개선 (BatchListener)
+
+```golang
+
+```
 
 ## Consumer
 
