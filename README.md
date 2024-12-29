@@ -5,11 +5,11 @@
 ```sh
 ## simple
 |- producer 				## producer 코드 (nodejs)
-|- consumer					## consumer 코드 (golang)
+|- consumer				## consumer 코드 (golang)
 
 ## advacned
 |- producer-lambda			## producer 코드 람다 코드 (javascript)
-|- consumer-batch-listener	## consumer Batch 코드 (golang)
+|- consumer-batch-listener		## consumer Batch 코드 (golang)
 
 ## cdc / outbox pattern
 |- producer-cdc				## producer cdc 코드 (javascript + mysql)
