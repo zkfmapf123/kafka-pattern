@@ -2,8 +2,8 @@
 
 ## Infra / Container
 
-[kafka docker-compose.yml 코드](./infra/docker-compose.yml)
-[api docker-compose.yml 코드](./docker-compose.yml)
+- [kafka docker-compose.yml 코드](./infra/docker-compose.yml)
+- [api docker-compose.yml 코드](./docker-compose.yml)
 
 ## Producer Code (nodejs)
 
