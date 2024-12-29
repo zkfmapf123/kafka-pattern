@@ -1,4 +1,4 @@
-# Kafak Essential
+# Kafka Essential
 
 ## Infra / Container
 
