@@ -57,13 +57,14 @@ services:
 
   consumer-batch:
     build:
-      context: ./consumer
+      context: ./consumer-batch-listener
       dockerfile: Dockerfile
     container_name: consumer-batch
     ports:
       - "8081:8080"
     environment:
       - PORT=8080
+      - BATCH_SIZE=5
       - KAFKA_TOPICS=user,family,coworker
       - KAFKA_CONSUMER_GROUP=consumer-group
       - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094

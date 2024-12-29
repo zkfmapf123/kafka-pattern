@@ -77,21 +77,14 @@ func (b *BatchListener) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func messageProcessor(messages []*sarama.ConsumerMessage) {
-	for _, msg := range messages {
+func messageProcessor(session sarama.ConsumerGroupSession, batch []*sarama.ConsumerMessage) {
+	for _, msg := range batch {
 		log.Println("Topic : ", msg.Topic, "Values : ", string(msg.Value))
-	}
-}
-
-func commit(session sarama.ConsumerGroupSession, batch []*sarama.ConsumerMessage) {
-	
-	for _, m := range batch {
-		session.MarkMessage(m, "")
+		session.MarkMessage(msg, "")
 	}
 
-	log.Panicln("Commit... ", len(batch))
+	log.Println("Commit... ", len(batch))
 }
-
 
 // ConsumeClaim implements sarama.ConsumerGroupHandler.
 var (
@@ -112,16 +105,14 @@ func (b *BatchListener) ConsumeClaim(session sarama.ConsumerGroupSession, claim 
 			case msg := <- claim.Messages():
 				batch = append(batch, msg)
 				if len(batch) >= BATCH_SIZE {
-					messageProcessor(batch)	
-					commit(session, batch)
+					messageProcessor(session, batch)	
 					batch = nil
 					batchTimer.Reset(BATCH_TIMEOUT)
 				}
 			
 			case <-batchTimer.C:
 				if len(batch) >0 {
-					messageProcessor(batch)
-					commit(session, batch) 
+					messageProcessor(session, batch)
 					batch = nil
 				}
 				batchTimer.Reset(BATCH_TIMEOUT)
