@@ -1,0 +1,53 @@
+version: "3"
+services:
+  user-api:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: user-api
+    ports:
+      - "3000:3000"
+    environment:
+      - APP_NAME=user-api
+      - PORT=3000
+      - KAFKA_CLUSTER_NAME=local
+      - KAFKA_TOPIC=user
+      - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+  family-api:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: family-api
+    ports:
+      - "3001:3000"
+    environment:
+      - APP_NAME=family-api
+      - PORT=3000
+      - KAFKA_CLUSTER_NAME=local
+      - KAFKA_TOPIC=family
+      - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+  coworker-api:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: coworker-api
+    ports:
+      - "3002:3000"
+    environment:
+      - APP_NAME=coworker-api
+      - PORT=3000
+      - KAFKA_CLUSTER_NAME=local
+      - KAFKA_TOPIC=coworker
+      - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+  consumer:
+    build:
+      context: ./consumer
+      dockerfile: Dockerfile
+    container_name: consumer
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - KAFKA_TOPICS=user,family,coworker
+	    - KAFKA_CONSUMER_GROUP=consumer-group
+	    - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
