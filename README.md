@@ -20,8 +20,13 @@
 ## Exec
 
 ```sh
+	## pub-sub
 	make up
+
+	## cdc up
 	make cdc-up
+
+	## outbox up
 	make outbox-up
 ```
 
@@ -285,6 +290,24 @@ func (k kafkaConn) Close() error {
   - 나름 이상적인 패턴임...
 - 단점
   - 좀더 구현하기가 복잡할 수 있음 (별도의 테이블을 구성..., immutable 하게 구성해야 함) -> 주기적으로 데이터를 지워줘야 함 (스토리지)
+
+## Consumer 측에서 발생할수 있는 이슈
+
+### Exception
+
+- JsonProcessingTimeoutException
+  - 원인 : Json 파싱 실패
+  - 해결 : 컨슈머 측에서는 해결 불가 (이미 파싱이 불가한거라... 코드수정) -> Not Retryable
+- TimeoutException
+  - 원인 : DB를 쓴다거나, API 요청을 한다던가, 브로커가 안된다던가 (사실 너무 많음)
+  - 해결 : <b>주로 일시적인 문제일 가능성이 높음</b> - Retryable
+
+### 해결방법 (Retry)
+
+- Retry
+  - 너무 자주 하면 서버에 부하가 많이 온다.
+  - Fixed ( 1초 대기 -> 1초 대기 -> 1초 대기) = x만큼 대기
+  - Exponential ( 2초대기 -> 4초대기 -> 8초대기) = x \* 2 만큼 대기 (서버부하를 줄일 수 있음...)
 
 ## Issue
 

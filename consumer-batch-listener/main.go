@@ -21,6 +21,10 @@ var (
 	KAFKA_TOPICS         = os.Getenv("KAFKA_TOPICS")
 	KAFKA_CONSUMER_GROUP = os.Getenv("KAFKA_CONSUMER_GROUP")
 	KAFKA_BROKERS        = os.Getenv("KAFKA_BROKERS")
+	
+	// RETRY (Exponential)
+	KAFKA_RETRY_COUNT = os.Getenv("KAFKA_RETRY_COUNT") // 최대 재시도 횟수
+	KAFKA_BACKOFF = os.Getenv("KAFKA_BACKOFF") // 재시도 간격
 )
 
 func main() {
@@ -91,12 +95,12 @@ var (
 	_BATCH_SIZE = os.Getenv("BATCH_SIZE")
 )
 
+// 메시지 처리
 func (b *BatchListener) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {	
 
 	BATCH_SIZE ,_ := strconv.Atoi(_BATCH_SIZE)
 	BATCH_TIMEOUT := 5 * time.Second
 	
-
 	var batch []*sarama.ConsumerMessage
 	batchTimer := time.NewTimer(BATCH_TIMEOUT)
 
@@ -124,7 +128,6 @@ func (k kafkaConn) ConsumeBatch() {
 
 	topics := strings.Split(KAFKA_TOPICS, ",")
 	go func() {
-
 		for {
 			if err := k.consumer.Consume(context.TODO(), topics, &BatchListener{}); err != nil {
 				panic(err)

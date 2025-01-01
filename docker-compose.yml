@@ -42,18 +42,18 @@ services:
       - KAFKA_TOPIC=coworker
       - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
 
-  consumer:
-    build:
-      context: ./consumer
-      dockerfile: Dockerfile
-    container_name: consumer
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
-      - KAFKA_TOPICS=user,family,coworker
-      - KAFKA_CONSUMER_GROUP=consumer-group
-      - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+  # consumer:
+  #   build:
+  #     context: ./consumer
+  #     dockerfile: Dockerfile
+  #   container_name: consumer
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - PORT=8080
+  #     - KAFKA_TOPICS=user,family,coworker
+  #     - KAFKA_CONSUMER_GROUP=consumer-group
+  #     - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
 
   consumer-batch:
     build:
@@ -68,3 +68,5 @@ services:
       - KAFKA_TOPICS=user,family,coworker
       - KAFKA_CONSUMER_GROUP=consumer-group
       - KAFKA_BROKERS=compute.leedonggyu.com:9092,compute.leedonggyu.com:9093,compute.leedonggyu.com:9094
+      - KAFKA_RETRY_COUNT=5
+      - KAFKA_BACKOFF=2
