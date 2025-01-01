@@ -81,13 +81,18 @@ func (b *BatchListener) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func messageProcessor(session sarama.ConsumerGroupSession, batch []*sarama.ConsumerMessage) {
+func messageProcessor(session sarama.ConsumerGroupSession, batch []*sarama.ConsumerMessage) error {
+	fmt.Println("messageProcessor")
+
+	// return fmt.Errorf("exception...")
+
 	for _, msg := range batch {
 		log.Println("Topic : ", msg.Topic, "Values : ", string(msg.Value))
 		session.MarkMessage(msg, "")
 	}
 
 	log.Println("Commit... ", len(batch))
+	return nil
 }
 
 // ConsumeClaim implements sarama.ConsumerGroupHandler.
@@ -96,10 +101,16 @@ var (
 )
 
 // 메시지 처리
+// 재시도로직 추가
 func (b *BatchListener) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {	
+	log.Println("consumerClaim")
 
 	BATCH_SIZE ,_ := strconv.Atoi(_BATCH_SIZE)
 	BATCH_TIMEOUT := 5 * time.Second
+
+	RETRY_COUNT := 1
+	MAX_RETRY_COUNT,_ := strconv.Atoi(KAFKA_RETRY_COUNT)
+	RETRY_BACKOFF, _  := strconv.Atoi(KAFKA_BACKOFF)
 	
 	var batch []*sarama.ConsumerMessage
 	batchTimer := time.NewTimer(BATCH_TIMEOUT)
@@ -109,22 +120,47 @@ func (b *BatchListener) ConsumeClaim(session sarama.ConsumerGroupSession, claim 
 			case msg := <- claim.Messages():
 				batch = append(batch, msg)
 				if len(batch) >= BATCH_SIZE {
-					messageProcessor(session, batch)	
-					batch = nil
-					batchTimer.Reset(BATCH_TIMEOUT)
+					// Message Failed
+					if err := messageProcessor(session, batch); err!= nil {
+						mustRetry(RETRY_COUNT, MAX_RETRY_COUNT, RETRY_BACKOFF)
+						RETRY_COUNT++	
+					}else{
+						batch = nil
+						batchTimer.Reset(BATCH_TIMEOUT)
+					}
+
 				}
 			
 			case <-batchTimer.C:
 				if len(batch) >0 {
-					messageProcessor(session, batch)
-					batch = nil
+					// BatchTime Failed
+					if err := messageProcessor(session, batch); err != nil {
+						mustRetry(RETRY_COUNT, MAX_RETRY_COUNT, RETRY_BACKOFF)
+						RETRY_COUNT++
+					}else{
+						batch = nil
+					}
+
 				}
 				batchTimer.Reset(BATCH_TIMEOUT)
 		}
 	}
 }
 
+func mustRetry(retryCount int, maxRetryCount int, backoff int) {
+	
+	// exit
+	if retryCount == maxRetryCount {
+		log.Fatalf("Retry 최대한도... %d", retryCount)
+	}
+
+	retryBackoffDuration := retryCount * backoff
+	log.Printf("재시도 횟수 : %d 재시도 시간 : %ds",retryCount, retryBackoffDuration )
+	time.Sleep(time.Duration(retryBackoffDuration))
+}
+
 func (k kafkaConn) ConsumeBatch() {
+	log.Println("consumerbatch")
 
 	topics := strings.Split(KAFKA_TOPICS, ",")
 	go func() {

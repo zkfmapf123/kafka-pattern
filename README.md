@@ -309,6 +309,27 @@ func (k kafkaConn) Close() error {
   - Fixed ( 1초 대기 -> 1초 대기 -> 1초 대기) = x만큼 대기
   - Exponential ( 2초대기 -> 4초대기 -> 8초대기) = x \* 2 만큼 대기 (서버부하를 줄일 수 있음...)
 
+![retry](./public/retry.png)
+
+```go
+// Exponential
+func mustRetry(retryCount int, maxRetryCount int, backoff int) {
+
+	// exit
+	if retryCount == maxRetryCount {
+		log.Fatalf("Retry 최대한도... %d", retryCount)
+	}
+
+	retryBackoffDuration := retryCount * backoff
+	log.Printf("재시도 횟수 : %d 재시도 시간 : %ds",retryCount, retryBackoffDuration )
+	time.Sleep(time.Duration(retryBackoffDuration))
+}
+```
+
+- Dead Letter Topic
+  - Consume이 실패한 메시지를 새로운 토픽에다가 메시지를 넘긴다.
+  - Dead Letter와 비슷함... (SQS)
+
 ## Issue
 
 - EC2에 구성된 카프카 local에서 접근 시, Connection Error
