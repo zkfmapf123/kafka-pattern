@@ -353,6 +353,86 @@ func mustRetry(retryCount int, maxRetryCount int, backoff int) {
  - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka1:19092,EXTERNAL://<EC2 퍼블릭 IP>:9092
 ```
 
+### Cosnumer의 과도한 리밸런싱을 줄이는 방법
+
+- Consumer Group ID가 리밸런싱에 미치는 영향
+
+  - 고정된 Group ID를 사용하면 리밸런싱을 최소화 할 수 있음
+  - static membership
+
+```sh
+	group.instance.id=consumer-*
+```
+
+    - Session Timeout 값 조정
+    - 너무짧으면 Consumer가 일시적으로 끊겨서 리밸런싱 발생
+
+```sh
+# default 45s (이를 늘리면 불필요한 리밸런싱을 줄일 수 있음)
+session.timeout.ms=60000 # 60s
+```
+
+    - Auto Offset Reset
+    - latest보다는 earlest가 예측가능성을 높여서 리밸런싱을 최소화 할 수 있음
+
+```sh
+auto.offset.reset=earliest
+```
+
+    - reblance protocol 설정
+    - RangeAssignor, StickyAssignor, CooperativeStickyAssignor 중 **CooperativeStickyAssignor**를 사용하면 최소한의 리밸런싱만 발생함
+
+```sh
+partition.assignment.strategy=org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+```
+
+✅ Consumer가 재시작해도 리밸런싱 없음
+✅ 일시적인 네트워크 장애에도 세션 유지
+✅ Kubernetes/Docker 환경에서 안정적으로 운영 가능
+
+- 즉, Static Membership을 사용하면, consumer가 일단 남아있어 리밸런싱이 발생하지 않음... (consumer-batch-listener에 구성되어있음)
+
+```golang
+func NewKafka() kafkaConn {
+
+	kafkaBrokers := strings.Split(KAFKA_BROKERS, ",")
+
+	config := sarama.NewConfig()
+	config.Consumer.Return.Errors = true
+	config.Version = sarama.V3_6_0_0
+
+	groupId := ""
+	hostname, _ := os.Hostname()
+
+	// static membership
+	if IS_STATIC_MEMBERSHIP == "true" {
+		groupId = fmt.Sprintf("consumer-%s", hostname)
+	}else{
+		groupId = hostname
+	}
+
+	config.Consumer.Offsets.AutoCommit.Enable = false
+	config.Consumer.Offsets.Initial = sarama.OffsetNewest // 최신 메시지부터 수동커밋...
+
+	// static membership
+	// config.Consumer.Group.InstanceId = "consumer-"
+
+
+	consumerGroup, err := sarama.NewConsumerGroup(kafkaBrokers, groupId, config)
+	if err != nil {
+		panic(err)
+	}
+
+	return kafkaConn{
+		consumer: consumerGroup,
+	}
+}
+```
+
 ## Reference
 
 - <a href="https://kafka.js.org/docs/getting-started">Kafakjs</a>
+
+```
+
+```

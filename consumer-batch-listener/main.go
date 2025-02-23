@@ -21,6 +21,7 @@ var (
 	KAFKA_TOPICS         = os.Getenv("KAFKA_TOPICS")
 	KAFKA_CONSUMER_GROUP = os.Getenv("KAFKA_CONSUMER_GROUP")
 	KAFKA_BROKERS        = os.Getenv("KAFKA_BROKERS")
+	IS_STATIC_MEMBERSHIP = os.Getenv("KAFKA_IS_STATIC_MEMBERSHIP")
 	
 	// RETRY (Exponential)
 	KAFKA_RETRY_COUNT = os.Getenv("KAFKA_RETRY_COUNT") // 최대 재시도 횟수
@@ -54,10 +55,23 @@ func NewKafka() kafkaConn {
 	config.Consumer.Return.Errors = true
 	config.Version = sarama.V3_6_0_0
 
+	groupId := ""
+	hostname, _ := os.Hostname()
+
+	if IS_STATIC_MEMBERSHIP == "true" {
+		groupId = fmt.Sprintf("consumer-%s", hostname)
+	}else{
+		groupId = hostname
+	}
+
 	config.Consumer.Offsets.AutoCommit.Enable = false
 	config.Consumer.Offsets.Initial = sarama.OffsetNewest // 최신 메시지부터 수동커밋...
 
-	consumerGroup, err := sarama.NewConsumerGroup(kafkaBrokers, KAFKA_CONSUMER_GROUP, config)
+	// static membership
+	// config.Consumer.Group.InstanceId = "consumer-"
+	
+	
+	consumerGroup, err := sarama.NewConsumerGroup(kafkaBrokers, groupId, config)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +101,8 @@ func messageProcessor(session sarama.ConsumerGroupSession, batch []*sarama.Consu
 	// return fmt.Errorf("exception...")
 
 	for _, msg := range batch {
-		log.Println("Topic : ", msg.Topic, "Values : ", string(msg.Value))
+		
+		log.Println("Topic : ", msg.Topic, "Values : ", string(msg.Value), "Partition : ", msg.Partition, "Offset : ", msg.Offset)
 		session.MarkMessage(msg, "")
 	}
 
